@@ -1,0 +1,3 @@
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecommerce
+SPRING_DATASOURCE_USERNAME=db-user
+SPRING_DATASOURCE_PASSWORD=db-password
