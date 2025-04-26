@@ -1,6 +1,6 @@
 // Define constants for the microservice URLs
-const PRODUCT_SERVICE_URL = "http://product-service:8080/api/products";
-const USER_SERVICE_URL = "http://user-service:8080/api/users";
+const PRODUCT_SERVICE_URL = "/api/products";
+const USER_SERVICE_URL = "/api/users";
 
 document.addEventListener('DOMContentLoaded', () => {
     const productsSection = document.getElementById('products-section');
