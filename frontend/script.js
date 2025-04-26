@@ -1,3 +1,7 @@
+// Define constants for the microservice URLs
+const PRODUCT_SERVICE_URL = "http://product-service:8080/api/products";
+const USER_SERVICE_URL = "http://user-service:8080/api/users";
+
 document.addEventListener('DOMContentLoaded', () => {
     const productsSection = document.getElementById('products-section');
     const usersSection = document.getElementById('users-section');
@@ -9,14 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
         usersSection.classList.add('hidden');
     }
 
-    // Show products and load data from GET /api/products
+    // Show products and load data from PRODUCT_SERVICE_URL
     showProductsBtn.addEventListener('click', () => {
         hideAllSections();
         productsSection.classList.remove('hidden');
         loadProducts();
     });
 
-    // Show users and load data from GET /api/users
+    // Show users and load data from USER_SERVICE_URL
     showUsersBtn.addEventListener('click', () => {
         hideAllSections();
         usersSection.classList.remove('hidden');
@@ -27,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const productList = document.getElementById('product-list');
         productList.innerHTML = '<li>Loading products...</li>';
         try {
-            const response = await fetch('/api/products');
+            const response = await fetch(PRODUCT_SERVICE_URL);
             const products = await response.json();
             productList.innerHTML = '';
             products.forEach(product => {
@@ -44,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const userList = document.getElementById('user-list');
         userList.innerHTML = '<li>Loading users...</li>';
         try {
-            const response = await fetch('/api/users');
+            const response = await fetch(USER_SERVICE_URL);
             const users = await response.json();
             userList.innerHTML = '';
             users.forEach(user => {
@@ -57,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Form submission for creating a new product (POST /api/products)
+    // Form submission for creating a new product (POST to PRODUCT_SERVICE_URL)
     document.getElementById('product-form').addEventListener('submit', async e => {
         e.preventDefault();
         const name = document.getElementById('product-name').value;
@@ -65,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const price = document.getElementById('product-price').value;
 
         try {
-            await fetch('/api/products', {
+            await fetch(PRODUCT_SERVICE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, description, price })
@@ -77,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Form submission for creating a new user (POST /api/users)
+    // Form submission for creating a new user (POST to USER_SERVICE_URL)
     document.getElementById('user-form').addEventListener('submit', async e => {
         e.preventDefault();
         const username = document.getElementById('username').value;
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('password').value;
 
         try {
-            await fetch('/api/users', {
+            await fetch(USER_SERVICE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
