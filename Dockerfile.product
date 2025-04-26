@@ -9,4 +9,4 @@ WORKDIR /app
 COPY --from=builder /app/target/simple-ecommerce-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-cp", "app.jar", "com.example.simple_ecommerce.product.ProductServiceApplication"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
