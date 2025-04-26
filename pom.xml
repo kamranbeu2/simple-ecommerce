@@ -82,6 +82,8 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- Skip default repackage execution -->
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <!-- Execution for user-service -->
@@ -94,6 +96,7 @@
                             <mainClass>com.example.simple_ecommerce.user.UserServiceApplication</mainClass>
                             <classifier>user</classifier>
                             <outputDirectory>${project.build.directory}</outputDirectory>
+                            <skip>false</skip>
                         </configuration>
                     </execution>
                     <!-- Execution for product-service -->
@@ -106,6 +109,7 @@
                             <mainClass>com.example.simple_ecommerce.product.ProductServiceApplication</mainClass>
                             <classifier>product</classifier>
                             <outputDirectory>${project.build.directory}</outputDirectory>
+                            <skip>false</skip>
                         </configuration>
                     </execution>
                 </executions>
