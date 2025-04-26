@@ -1,4 +1,4 @@
-package com.example.simple_ecommerce.model;
+package com.example.simple_ecommerce.product.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

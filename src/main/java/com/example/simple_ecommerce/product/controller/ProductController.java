@@ -1,7 +1,8 @@
-package com.example.simple_ecommerce.controller;
+package com.example.simple_ecommerce.product.controller;
 
-import com.example.simple_ecommerce.model.Product;
-import com.example.simple_ecommerce.repository.ProductRepository;
+import com.example.simple_ecommerce.product.model.Product;
+import com.example.simple_ecommerce.product.repository.ProductRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

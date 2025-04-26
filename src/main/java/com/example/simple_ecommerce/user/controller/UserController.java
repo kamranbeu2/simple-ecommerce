@@ -1,7 +1,8 @@
-package com.example.simple_ecommerce.controller;
+package com.example.simple_ecommerce.user.controller;
 
-import com.example.simple_ecommerce.model.User;
-import com.example.simple_ecommerce.repository.UserRepository;
+import com.example.simple_ecommerce.user.model.User;
+import com.example.simple_ecommerce.user.repository.UserRepository;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
