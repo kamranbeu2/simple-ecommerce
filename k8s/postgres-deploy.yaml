@@ -18,7 +18,12 @@ spec:
       initContainers:
         - name: wipe-pgdata
           image: busybox:1.35.0-uclibc
-          command: ["sh", "-c", "rm -rf /var/lib/postgresql/data/*"]
+          command:
+            [
+              "sh",
+              "-c",
+              "rm -rf /var/lib/postgresql/data/* /var/lib/postgresql/data/.[!.]* /var/lib/postgresql/data/..?*",
+            ]
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/postgresql/data
