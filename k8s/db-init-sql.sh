@@ -1,0 +1,1 @@
+kubectl create configmap db-init-sql-configmap --from-file=../db/init.sql
