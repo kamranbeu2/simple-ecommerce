@@ -1,1 +1,1 @@
-kubectl create configmap db-init-sql-configmap --from-file=../db/init.sql
+kubectl create configmap db-init-sql-configmap -n ecommerce --from-file=../db/init.sql
