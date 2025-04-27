@@ -27,7 +27,7 @@ spec:
               cpu: "500m"
           ports:
             - containerPort: 8080
-          envFrom:
+          env:
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 configMapKeyRef:
