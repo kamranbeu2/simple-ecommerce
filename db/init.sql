@@ -1,9 +1,3 @@
-CREATE DATABASE if NOT EXISTS ecommerce;
--- Connect to the ecommerce database
-\c ecommerce
-CREATE USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';
-
-
 -- Create the Users table
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
