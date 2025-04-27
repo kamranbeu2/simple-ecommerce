@@ -35,12 +35,12 @@ spec:
                   key: SPRING_DATASOURCE_URL
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   name: db-secret
                   key: POSTGRES_USER
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   name: db-secret
                   key: SPRING_DATASOURCE_PASSWORD
 
