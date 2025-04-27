@@ -15,6 +15,13 @@ spec:
       labels:
         app: postgres
     spec:
+      initContainers:
+        - name: wipe-pgdata
+          image: busybox:1.35.0-uclibc
+          command: ["sh", "-c", "rm -rf /var/lib/postgresql/data/*"]
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
           image: postgres:15
