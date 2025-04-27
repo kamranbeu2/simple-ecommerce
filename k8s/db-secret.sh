@@ -1,4 +1,1 @@
-kubectl create secret generic db-secret \
-  --from-literal=POSTGRES_PASSWORD=db-password \
-  --from-literal=POSTGRES_USER=db-user \
-  --from-literal=POSTGRES_DB=ecommerce
+kubectl create secret generic db-secret --from-literal=POSTGRES_PASSWORD=db-password --from-literal=POSTGRES_USER=db-user --from-literal=POSTGRES_DB=ecommerce
