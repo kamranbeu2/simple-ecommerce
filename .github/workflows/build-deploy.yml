@@ -1,0 +1,76 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: echo "::set-output name=version::$(date +'%Y%m%d%H%M%S')"
+
+      - name: Build and push User Service
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfiles/Dockerfile.user
+          push: true
+          tags: kamran420/ecommerce-user:${{ steps.meta.outputs.version }},kamran420/ecommerce-user:latest
+
+      - name: Build and push Product Service
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfiles/Dockerfile.product
+          push: true
+          tags: kamran420/ecommerce-product:${{ steps.meta.outputs.version }},kamran420/ecommerce-product:latest
+
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfiles/Dockerfile.front
+          push: true
+          tags: kamran420/ecommerce-front:${{ steps.meta.outputs.version }},kamran420/ecommerce-front:latest
+
+  deploy:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Update deployments
+        env:
+          USER_IMAGE: kamran420/ecommerce-user:${{ needs.build-and-publish.outputs.version }}
+          PRODUCT_IMAGE: kamran420/ecommerce-product:${{ needs.build-and-publish.outputs.version }}
+          FRONTEND_IMAGE: kamran420/ecommerce-front:${{ needs.build-and-publish.outputs.version }}
+          NAMESPACE: ecommerce
+        run: |
+          kubectl set image deployment/user-service user-service=${USER_IMAGE} --namespace ${NAMESPACE}
+          kubectl set image deployment/product-service product-service=${PRODUCT_IMAGE} --namespace ${NAMESPACE}
+          kubectl set image deployment/front-end front-end=${FRONTEND_IMAGE} --namespace ${NAMESPACE}
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/user-service --namespace ecommerce --timeout=3m
+          kubectl rollout status deployment/product-service --namespace ecommerce --timeout=3m
+          kubectl rollout status deployment/front-end --namespace ecommerce --timeout=3m

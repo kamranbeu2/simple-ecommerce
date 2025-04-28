@@ -90,6 +90,20 @@ pipeline {
                         }
                     }
                 }
+
+                post {
+                    success {
+                        script {
+                            echo "Docker images built successfully."
+                        }
+                    }
+                    failure {
+                        script {
+                            error "Failed to build Docker images."
+                        }
+                    }
+                }
+                
             }
         }
         
@@ -105,6 +119,36 @@ pipeline {
                     kubectl set image deployment/${USER_DEPLOYMENT} user-service=${USER_IMAGE} --namespace ${NAMESPACE}
                     kubectl set image deployment/${PRODUCT_DEPLOYMENT} product-service=${PRODUCT_IMAGE} --namespace ${NAMESPACE}
                     kubectl set image deployment/${FRONTEND_DEPLOYMENT} front-end=${FRONTEND_IMAGE} --namespace ${NAMESPACE}
+                    '''
+                }
+            }
+
+            post {
+                success {
+                    script {
+                        echo "Deployments updated successfully."
+                    }
+                }
+                failure {
+                    script {
+                        error "Failed to update deployments."
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            agent {
+                kubernetes {
+                    yamlFile 'Jenkins/agents/kubectl-agent.yaml'
+                }
+            }
+            steps {
+                script {
+                    sh '''
+                    kubectl rollout status deployment/${USER_DEPLOYMENT} --namespace ${NAMESPACE} --timeout=3m
+                    kubectl rollout status deployment/${PRODUCT_DEPLOYMENT} --namespace ${NAMESPACE} --timeout=3m
+                    kubectl rollout status deployment/${FRONTEND_DEPLOYMENT} --namespace ${NAMESPACE} --timeout=3m
                     '''
                 }
             }
