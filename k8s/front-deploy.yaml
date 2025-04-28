@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: front-end
-          image: ecommerce-frontend:latest
+          image: kamran420/ecommerce-front:v1
           resources:
             requests:
               memory: "128Mi"
