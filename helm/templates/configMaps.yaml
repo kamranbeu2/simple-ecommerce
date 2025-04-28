@@ -1,0 +1,11 @@
+{{- if .Values.configmaps}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configmaps.dbInitSqlConfigMapName | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+data:
+  {{- range $key, $value := .Values.configmaps.dbInitSqlConfigMap }}
+  {{ $key | quote }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}

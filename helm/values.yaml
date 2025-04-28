@@ -1,0 +1,86 @@
+replicaCount: 1
+
+secrets:
+  appConfig:
+    SPRING_DATASOURCE_PASSWORD: ""
+    SPRING_DATASOURCE_URL: ""
+    SPRING_DATASOURCE_USERNAME: ""
+  appConfigName: app-config
+
+  dbSecret:
+    POSTGRES_PASSWORD: ""
+    POSTGRES_USER: ""
+    POSTGRES_DB: ""
+  dbSecretName: db-secret
+
+configmaps:
+  dbInitSqlConfigMap:
+    init.sql: |
+  dbInitSqlConfigMapName: db-init-sql-configmap
+
+user:
+  replicaCount: 1
+  image:
+    repository: kamran420/ecommerce-user
+    tag: v1
+    pullPolicy: IfNotPresent
+  ports:
+    containerPort: 8080
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+  service:
+    enabled: true
+    name: user-service
+    type: ClusterIP
+    port: 8081
+    targetPort: 8080
+    annotations: {}
+
+product:
+  replicaCount: 1
+  image:
+    repository: kamran420/ecommerce-product
+    tag: v1
+    pullPolicy: IfNotPresent
+  ports:
+    containerPort: 8080
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+  service:
+    enabled: true
+    name: product-service
+    type: ClusterIP
+    port: 8082
+    targetPort: 8080
+    annotations: {}
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: kamran420/ecommerce-front
+    tag: v1
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+  service:
+    enabled: true
+    name: front-end
+    type: LoadBalancer
+    port: 80
+    annotations:
+      service.beta.kubernetes.io/metallb.untracked.io/allow-shared-ip: "true"
