@@ -1,6 +1,6 @@
-// Define constants for the microservice URLs
-const PRODUCT_SERVICE_URL = "/api/products";
-const USER_SERVICE_URL = "/api/users";
+
+const PRODUCT_SERVICE_URL = "/api/products/";
+const USER_SERVICE_URL = "/api/users/";
 
 document.addEventListener('DOMContentLoaded', () => {
     const productsSection = document.getElementById('products-section');
@@ -13,14 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
         usersSection.classList.add('hidden');
     }
 
-    // Show products and load data from PRODUCT_SERVICE_URL
     showProductsBtn.addEventListener('click', () => {
         hideAllSections();
         productsSection.classList.remove('hidden');
         loadProducts();
     });
 
-    // Show users and load data from USER_SERVICE_URL
     showUsersBtn.addEventListener('click', () => {
         hideAllSections();
         usersSection.classList.remove('hidden');
@@ -61,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Form submission for creating a new product (POST to PRODUCT_SERVICE_URL)
     document.getElementById('product-form').addEventListener('submit', async e => {
         e.preventDefault();
         const name = document.getElementById('product-name').value;
@@ -81,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Form submission for creating a new user (POST to USER_SERVICE_URL)
     document.getElementById('user-form').addEventListener('submit', async e => {
         e.preventDefault();
         const username = document.getElementById('username').value;
@@ -101,6 +97,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Load products on initial page load
     showProductsBtn.click();
 });
