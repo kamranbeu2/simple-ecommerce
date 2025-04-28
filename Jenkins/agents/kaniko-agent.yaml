@@ -1,0 +1,28 @@
+metadata:
+  labels:
+    agent: "kaniko"
+    jenkins: "slave"
+spec:
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - /busybox/cat
+      tty: true
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+      volumeMounts:
+        - mountPath: /workspace
+          name: workspace-volume
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker/config.json
+          subPath: .dockerconfigjson
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: regcred
+    - name: workspace-volume
+      emptyDir: {}
+  restartPolicy: Never

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: "slave"
+    agent: "kubectl"
+spec:
+  serviceAccountName: jenkins
+  containers:
+    - name: kubectl
+      image: kamran420/jenkins-kubectl:v1
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "125m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      args: ["sleep", "9999"]
+      tty: true

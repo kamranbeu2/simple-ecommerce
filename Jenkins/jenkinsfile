@@ -1,0 +1,113 @@
+pipeline {
+    agent none
+    environment {
+        USER_IMAGE = "docker.io/kamran420/ecommerce-user:${env.BUILD_NUMBER}"
+        PRODUCT_IMAGE = "docker.io/kamran420/ecommerce-product:${env.BUILD_NUMBER}"
+        FRONTEND_IMAGE = "docker.io/kamran420/ecommerce-front:${env.BUILD_NUMBER}"
+
+        USER_DEPLOYMENT = "user-service"
+        PRODUCT_DEPLOYMENT = "product-service"
+        FRONTEND_DEPLOYMENT = "front-end"
+
+        NAMESPACE = "ecommerce"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    checkout scm
+                }
+            }
+        }
+        
+        stage('Run Tests') {
+            agent {
+                docker {
+                    image 'maven:3.8.5-openjdk-17-slim'
+                    args '-v $HOME/.m2:/root/.m2'
+                }
+            }
+            steps {
+                script {
+                    sh 'mvn clean test'
+                }
+            }
+        }
+        
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build User Image') {
+                    agent {
+                        kubernetes {
+                            yamlFile 'Jenkins/agents/kaniko-agent.yaml'
+                        }
+                    }
+                    steps {
+                        script {
+                            sh '''
+                            /kaniko/executor --context `pwd` \
+                          --dockerfile Dockerfiles/Dockerfile.user \
+                          --destination ${USER_IMAGE} \
+                          --insecure --skip-tls-verify
+                        '''
+                        }
+                    }
+                }
+                
+                stage('Build Product Image') {
+                    agent {
+                        kubernetes {
+                            yamlFile 'Jenkins/agents/kaniko-agent.yaml'
+                        }
+                    }
+                    steps {
+                        script {
+                            sh '''
+                            /kaniko/executor --context `pwd` \
+                          --dockerfile Dockerfiles/Dockerfile.product \
+                          --destination ${PRODUCT_IMAGE} \
+                          --insecure --skip-tls-verify
+                        '''
+                        }
+                    }
+                }
+                
+                stage('Build Frontend Image') {
+                    agent {
+                        kubernetes {
+                            yamlFile 'Jenkins/agents/kaniko-agent.yaml'
+                        }
+                    }
+                    steps {
+                        script {
+                            sh '''
+                            /kaniko/executor --context `pwd` \
+                          --dockerfile Dockerfiles/Dockerfile.front \
+                          --destination ${FRONTEND_IMAGE} \
+                          --insecure --skip-tls-verify
+                        '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Update Deployments') {
+            agent {
+                kubernetes {
+                    yamlFile 'Jenkins/agents/kubectl-agent.yaml'
+                }
+            }
+            steps {
+                script {
+                    sh '''
+                    kubectl set image deployment/${USER_DEPLOYMENT} user-service=${USER_IMAGE} --namespace ${NAMESPACE}
+                    kubectl set image deployment/${PRODUCT_DEPLOYMENT} product-service=${PRODUCT_IMAGE} --namespace ${NAMESPACE}
+                    kubectl set image deployment/${FRONTEND_DEPLOYMENT} front-end=${FRONTEND_IMAGE} --namespace ${NAMESPACE}
+                    '''
+                }
+            }
+        }
+    }
+}
