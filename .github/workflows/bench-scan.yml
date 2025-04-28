@@ -1,0 +1,62 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 0 * * 0" # Weekly scan
+
+jobs:
+  kubernetes-security:
+    name: Kubernetes Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Run kube-bench
+        run: |
+          docker run --rm -v $(pwd):/results aquasec/kube-bench:latest run --targets=master --outputfile=/results/kube-bench-results.json --json
+          cat kube-bench-results.json | jq '.totals'
+
+      - name: Upload kube-bench results
+        uses: actions/upload-artifact@v3
+        with:
+          name: kube-bench-results
+          path: kube-bench-results.json
+
+      - name: Fail on critical issues
+        if: ${{ success() }}
+        run: |
+          CRITICAL_COUNT=$(cat kube-bench-results.json | jq '.totals.fail.critical')
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "❌ Found $CRITICAL_COUNT critical issues"
+            exit 1
+          fi
+          echo "✅ No critical issues found"
+
+  tfsec-scan:
+    name: Terraform Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: true
+
+      - name: Upload tfsec results
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfsec-results
+          path: tfsec.json
