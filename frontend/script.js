@@ -1,6 +1,6 @@
 
-const PRODUCT_SERVICE_URL = "/api/products";
-const USER_SERVICE_URL = "/api/users";
+const PRODUCT_SERVICE_URL = "/api/products/";
+const USER_SERVICE_URL = "/api/users/";
 
 document.addEventListener('DOMContentLoaded', () => {
     const productsSection = document.getElementById('products-section');
