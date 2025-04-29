@@ -22,7 +22,7 @@ user:
   replicaCount: 1
   image:
     repository: kamran420/ecommerce-user
-    tag: v1
+    tag: latest
     pullPolicy: IfNotPresent
   ports:
     containerPort: 8080
@@ -45,7 +45,7 @@ product:
   replicaCount: 1
   image:
     repository: kamran420/ecommerce-product
-    tag: v1
+    tag: latest
     pullPolicy: IfNotPresent
   ports:
     containerPort: 8080
@@ -68,7 +68,7 @@ frontend:
   replicaCount: 1
   image:
     repository: kamran420/ecommerce-front
-    tag: v1
+    tag: latest
     pullPolicy: IfNotPresent
   resources:
     requests:
