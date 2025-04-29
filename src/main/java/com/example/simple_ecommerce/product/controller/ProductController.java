@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/products/")
+@RequestMapping("/api/products")
 public class ProductController {
     private final ProductRepository productRepository;
 

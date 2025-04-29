@@ -49,7 +49,7 @@ jobs:
 
   deploy:
     needs: build-and-publish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # wont work on cloud, need to set up a self-hosted runner or use a cloud k8s cluster
     steps:
       - uses: actions/checkout@v3
 
