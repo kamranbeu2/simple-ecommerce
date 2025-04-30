@@ -49,14 +49,14 @@ jobs:
 
   deploy:
     needs: build-and-publish
-    runs-on: ubuntu-latest # wont work on cloud, need to set up a self-hosted runner or use a cloud k8s cluster
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up kubeconfig
-        uses: azure/k8s-set-context@v3
-        with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
       - name: Update deployments
         env:
