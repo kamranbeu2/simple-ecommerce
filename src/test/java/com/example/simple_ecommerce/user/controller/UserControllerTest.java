@@ -31,7 +31,7 @@ public class UserControllerTest {
         User user = new User(1L, "john_doe", "password123", "john@example.com", LocalDateTime.now());
         when(userRepository.findAll()).thenReturn(Arrays.asList(user));
 
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get("/api/users/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("john_doe"));
     }

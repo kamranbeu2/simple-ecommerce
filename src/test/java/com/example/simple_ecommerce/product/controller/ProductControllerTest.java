@@ -33,7 +33,7 @@ public class ProductControllerTest {
                                 LocalDateTime.now());
                 when(productRepository.findAll()).thenReturn(Arrays.asList(product));
 
-                mockMvc.perform(get("/api/products"))
+                mockMvc.perform(get("/api/products/"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].name").value("Test Product"));
         }
