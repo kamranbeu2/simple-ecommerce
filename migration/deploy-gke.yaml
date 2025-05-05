@@ -1,0 +1,49 @@
+---
+name: Deploy to GKE
+description: Deploy the application to Google Kubernetes Engine (GKE) using Google Artifact Registry images
+hosts: localhost
+vars:
+  namespace: ecommerce
+  artifact_registry: us-central1-docker.pkg.dev/gke-migration/ecommerce
+  manifest_path: ./k8s/
+tasks:
+  - name: Create GKE cluster
+    gcp_container_cluster:
+      name: ecommerce-cluster
+      location: us-central1-a
+      initial_node_count: 3
+      node_version: "latest"
+      node_config:
+        machine_type: e2-standard-4
+        disk_size_gb: 100
+        oauth_scopes:
+          - https://www.googleapis.com/auth/cloud-platform
+    register: cluster
+
+  - name: Set kubectl context to the new cluster
+    command: gcloud container clusters get-credentials ecommerce-cluster --zone us-central1-a --project gke-migration
+
+  - name: Create namespace if it doesn't exist
+    kubernetes.core.k8s:
+      name: "{{ namespace }}"
+      api_version: v1
+      kind: Namespace
+
+  - name: Find manifest files in manifest_path
+    ansible.builtin.find:
+      paths: "{{ manifest_path }}"
+      patterns: "*.yaml"
+    register: manifest_files
+
+  - name: Update image names to use Google Artifact Registry
+    ansible.builtin.replace:
+      path: "{{ item.path }}"
+      regexp: 'image:\s*kamran420/([^\s]+)'
+      replace: 'image: {{ artifact_registry }}/\1'
+    loop: "{{ manifest_files.files }}"
+
+  - name: Deploy application to GKE
+    kubernetes.core.k8s:
+      src: "{{ manifest_path }}"
+      state: present
+      namespace: "{{ namespace }}"
