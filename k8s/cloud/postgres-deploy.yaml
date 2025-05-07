@@ -84,4 +84,5 @@ spec:
   resources:
     requests:
       storage: 50Mi
-  storageClassName: nfs-sc
+  storageClassName: standard
+  volumeName: postgres-pv
