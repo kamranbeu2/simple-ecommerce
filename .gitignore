@@ -31,4 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-./migration/terraform/gke-creds.json
+
+### GKE Credentials ###
+**/gke-creds.json
