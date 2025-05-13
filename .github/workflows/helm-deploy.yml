@@ -67,44 +67,47 @@ jobs:
     needs: build-and-publish
     runs-on: ubuntu-latest
     env:
-      KUBE_NAMESPACE: ecommerce
-      RELEASE_NAME: ecommerce
+      RELEASE_NAME: ecommerce-test
       ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
-
+      ZONE: us-central1-a
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "v3.12.0"
+      - name: Authenticate with GCP
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+          gcloud auth activate-service-account --key-file=gcp-key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set up kubeconfig
-        uses: azure/k8s-set-context@v3
-        with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      - name: Create ephemeral cluster
+        run: |
+          CLUSTER_NAME=ephemeral-${{ github.run_id }}
+          echo "Creating ephemeral cluster: $CLUSTER_NAME"
+          gcloud container clusters create $CLUSTER_NAME --zone $ZONE --num-nodes=1 --quiet
+          gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE
+          echo $CLUSTER_NAME > cluster_name.txt
 
       - name: Create namespace if it doesn't exist
-        run: kubectl create namespace ${{ env.KUBE_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+        run: kubectl create namespace ${{ env.RELEASE_NAME }} --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create DB secrets and config maps
         run: |
           kubectl create secret generic db-secret \
-            --namespace=${{ env.KUBE_NAMESPACE }} \
+            --namespace=${{ env.RELEASE_NAME }} \
             --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
             --from-literal=POSTGRES_USER=${{ secrets.DB_USER }} \
             --from-literal=POSTGRES_DB=ecommerce \
             --dry-run=client -o yaml | kubectl apply -f -
             
           kubectl create secret generic app-config \
-            --namespace=${{ env.KUBE_NAMESPACE }} \
+            --namespace=${{ env.RELEASE_NAME }} \
             --from-literal=SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
             --from-literal=SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ecommerce \
             --from-literal=SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
             --dry-run=client -o yaml | kubectl apply -f -
             
           kubectl create configmap db-init-sql-configmap \
-            --namespace=${{ env.KUBE_NAMESPACE }} \
+            --namespace=${{ env.RELEASE_NAME }} \
             --from-file=init.sql=./db/init.sql \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -129,7 +132,7 @@ jobs:
           secrets:
             appConfigName: app-config
             dbSecretName: db-secret
-            
+              
           configmaps:
             dbInitSqlConfigMapName: db-init-sql-configmap
           EOF
@@ -141,7 +144,7 @@ jobs:
       - name: Deploy with Helm
         run: |
           helm upgrade --install ${{ env.RELEASE_NAME }} ./helm \
-            --namespace ${{ env.KUBE_NAMESPACE }} \
+            --namespace ${{ env.RELEASE_NAME }} \
             -f ./helm/values.yaml \
             -f ./helm/values-${{ env.ENVIRONMENT }}.yaml \
             --create-namespace \
@@ -150,6 +153,13 @@ jobs:
 
       - name: Verify deployment
         run: |
-          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-user --namespace ${{ env.KUBE_NAMESPACE }} --timeout=3m
-          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-product --namespace ${{ env.KUBE_NAMESPACE }} --timeout=3m
-          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-frontend --namespace ${{ env.KUBE_NAMESPACE }} --timeout=3m
+          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-user --namespace ${{ env.RELEASE_NAME }} --timeout=3m
+          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-product --namespace ${{ env.RELEASE_NAME }} --timeout=3m
+          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-frontend --namespace ${{ env.RELEASE_NAME }} --timeout=3m
+
+      - name: Delete ephemeral cluster
+        if: always()
+        run: |
+          CLUSTER_NAME=$(cat cluster_name.txt)
+          echo "Deleting ephemeral cluster: $CLUSTER_NAME"
+          gcloud container clusters delete $CLUSTER_NAME --zone $ZONE --quiet
