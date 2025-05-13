@@ -19,7 +19,7 @@ spec:
         spec:
         containers:
             - name: {{include "simple-ecommerce.fullname" . }}-product
-              image: {{ .Values.product.image.repository | quote }}:{{ .Values.product.image.tag | quote }}
+              image: "{{ .Values.product.image.repository }}:{{ .Values.product.image.tag }}"
               imagePullPolicy: {{ .Values.product.image.pullPolicy | quote }}
               ports:
                 - containerPort: {{ .Values.product.containerPort | quote }}

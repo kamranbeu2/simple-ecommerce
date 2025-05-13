@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: {{ include "simple-ecommerce.fullname" . }}-frontend
-          image: {{ .Values.frontend.image.repository | quote }}:{{ .Values.frontend.image.tag | quote }}
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy | quote }}
           ports:
             - containerPort: {{ .Values.frontend.containerPort }}
