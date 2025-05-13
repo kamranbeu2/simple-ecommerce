@@ -4,7 +4,7 @@ metadata:
     name: {{ .Values.product.service.name | quote }}
     namespace: {{ .Release.Namespace | quote }}
     labels:
-        app: {{ Values.product.service.name | quote }}
+        app: {{ .Values.product.service.name | quote }}
         chart: {{ include "simple-ecommerce.chart" . }}
         release: {{ .Release.Name | quote }}
 spec:

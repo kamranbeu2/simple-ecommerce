@@ -19,30 +19,30 @@ spec:
         spec:
         containers:
             - name: {{include "simple-ecommerce.fullname" . }}-product
-            image: {{ .Values.product.image.repository | quote }}:{{ .Values.product.image.tag | quote }}
-            imagePullPolicy: {{ .Values.product.image.pullPolicy | quote }}
-            ports:
+              image: {{ .Values.product.image.repository | quote }}:{{ .Values.product.image.tag | quote }}
+              imagePullPolicy: {{ .Values.product.image.pullPolicy | quote }}
+              ports:
                 - containerPort: {{ .Values.product.containerPort | quote }}
-            resources:
+              resources:
                 requests:
                 memory: {{ .Values.product.resources.requests.memory | quote }}
                 cpu: {{ .Values.product.resources.requests.cpu | quote }}
                 limits:
                 memory: {{ .Values.product.resources.limits.memory | quote }}
                 cpu: {{ .Values.product.resources.limits.cpu | quote }}
-            env:
+              env:
                 - name: SPRING_DATASOURCE_URL
-                valueFrom:
+                  valueFrom:
                     secretKeyRef:
                     name: {{ .Values.secrets.appConfigName | quote }}
                     key: SPRING_DATASOURCE_URL
                 - name: SPRING_DATASOURCE_USERNAME
-                valueFrom:
+                  valueFrom:
                     secretKeyRef:
                     name: {{ .Values.secrets.appConfigName | quote }}
                     key: SPRING_DATASOURCE_USERNAME
                 - name: SPRING_DATASOURCE_PASSWORD
-                valueFrom:
+                  valueFrom:
                     secretKeyRef:
                     name: {{ .Values.secrets.appConfigName | quote }}
                     key: SPRING_DATASOURCE_PASSWORD
