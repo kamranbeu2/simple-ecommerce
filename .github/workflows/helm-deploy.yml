@@ -1,0 +1,155 @@
+name: Helm Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "helm/**"
+      - ".github/workflows/helm-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: echo "version=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Build and push User Service
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfiles/Dockerfile.user
+          push: true
+          tags: kamran420/ecommerce-user:${{ steps.meta.outputs.version }},kamran420/ecommerce-user:latest
+
+      - name: Build and push Product Service
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfiles/Dockerfile.product
+          push: true
+          tags: kamran420/ecommerce-product:${{ steps.meta.outputs.version }},kamran420/ecommerce-product:latest
+
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfiles/Dockerfile.front
+          push: true
+          tags: kamran420/ecommerce-front:${{ steps.meta.outputs.version }},kamran420/ecommerce-front:latest
+
+  deploy-helm:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    env:
+      KUBE_NAMESPACE: ecommerce
+      RELEASE_NAME: ecommerce
+      ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.12.0"
+
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Create namespace if it doesn't exist
+        run: kubectl create namespace ${{ env.KUBE_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create DB secrets and config maps
+        run: |
+          kubectl create secret generic db-secret \
+            --namespace=${{ env.KUBE_NAMESPACE }} \
+            --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --from-literal=POSTGRES_USER=${{ secrets.DB_USER }} \
+            --from-literal=POSTGRES_DB=ecommerce \
+            --dry-run=client -o yaml | kubectl apply -f -
+            
+          kubectl create secret generic app-config \
+            --namespace=${{ env.KUBE_NAMESPACE }} \
+            --from-literal=SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --from-literal=SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ecommerce \
+            --from-literal=SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+            
+          kubectl create configmap db-init-sql-configmap \
+            --namespace=${{ env.KUBE_NAMESPACE }} \
+            --from-file=init.sql=./db/init.sql \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Generate values file with image tags
+        run: |
+          cat > ./helm/values-${{ env.ENVIRONMENT }}.yaml << EOF
+          user:
+            image:
+              repository: kamran420/ecommerce-user
+              tag: ${{ needs.build-and-publish.outputs.version }}
+              
+          product:
+            image:
+              repository: kamran420/ecommerce-product
+              tag: ${{ needs.build-and-publish.outputs.version }}
+              
+          frontend:
+            image:
+              repository: kamran420/ecommerce-front
+              tag: ${{ needs.build-and-publish.outputs.version }}
+              
+          secrets:
+            appConfigName: app-config
+            dbSecretName: db-secret
+            
+          configmaps:
+            dbInitSqlConfigMapName: db-init-sql-configmap
+          EOF
+
+          if [ "${{ env.ENVIRONMENT }}" == "production" ]; then
+            echo "  replicaCount: 2" >> ./helm/values-${{ env.ENVIRONMENT }}.yaml
+          fi
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install ${{ env.RELEASE_NAME }} ./helm \
+            --namespace ${{ env.KUBE_NAMESPACE }} \
+            -f ./helm/values.yaml \
+            -f ./helm/values-${{ env.ENVIRONMENT }}.yaml \
+            --create-namespace \
+            --atomic \
+            --timeout 5m
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-user --namespace ${{ env.KUBE_NAMESPACE }} --timeout=3m
+          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-product --namespace ${{ env.KUBE_NAMESPACE }} --timeout=3m
+          kubectl rollout status deployment/${{ env.RELEASE_NAME }}-frontend --namespace ${{ env.KUBE_NAMESPACE }} --timeout=3m
