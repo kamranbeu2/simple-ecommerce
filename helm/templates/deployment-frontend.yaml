@@ -8,25 +8,25 @@ metadata:
     chart: {{ include "simple-ecommerce.chart" . }}
     release: {{ .Release.Name | quote }}
 spec:
-    replicas: {{ .Values.frontend.replicaCount | quote }}
-    selector:
-        matchLabels:
+  replicas: {{ .Values.frontend.replicaCount | quote }}
+  selector:
+    matchLabels:
+      app: {{ include "simple-ecommerce.fullname" . }}-frontend
+  template:
+    metadata:
+      labels:
         app: {{ include "simple-ecommerce.fullname" . }}-frontend
-    template:
-        metadata:
-        labels:
-            app: {{ include "simple-ecommerce.fullname" . }}-frontend
-        spec:
-        containers:
-          - name: {{ include "simple-ecommerce.fullname" . }}-frontend
-            image: {{ .Values.frontend.image.repository | quote }}:{{ .Values.frontend.image.tag | quote }}
-            imagePullPolicy: {{ .Values.frontend.image.pullPolicy | quote }}
-            ports:
-                - containerPort: {{ .Values.frontend.containerPort | quote }}
-            resources:
-                requests:
-                memory: {{ .Values.frontend.resources.requests.memory | quote }}
-                cpu: {{ .Values.frontend.resources.requests.cpu | quote }}
-                limits:
-                memory: {{ .Values.frontend.resources.limits.memory | quote }}
-                cpu: {{ .Values.frontend.resources.limits.cpu | quote }}
+    spec:
+      containers:
+        - name: {{ include "simple-ecommerce.fullname" . }}-frontend
+          image: {{ .Values.frontend.image.repository | quote }}:{{ .Values.frontend.image.tag | quote }}
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy | quote }}
+          ports:
+            - containerPort: {{ .Values.frontend.containerPort }}
+          resources:
+            requests:
+              memory: {{ .Values.frontend.resources.requests.memory | quote }}
+              cpu: {{ .Values.frontend.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.frontend.resources.limits.memory | quote }}
+              cpu: {{ .Values.frontend.resources.limits.cpu | quote }}
