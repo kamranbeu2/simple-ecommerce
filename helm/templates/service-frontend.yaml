@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ .Values.frontend.service.name | quote }}
   namespace: {{ .Release.Namespace | quote }}
-    labels:
+  labels:
         app: {{ .Values.frontend.service.name | quote }}
         chart: {{ include "simple-ecommerce.chart" . }}
         release: {{ .Release.Name | quote }}
