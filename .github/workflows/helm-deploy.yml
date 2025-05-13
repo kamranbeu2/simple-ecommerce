@@ -76,6 +76,7 @@ jobs:
       - name: Authenticate with GCP
         run: |
           echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+          cat gcp-key.json
           if ! jq empty gcp-key.json > /dev/null 2>&1; then
             echo "Invalid JSON in GCP_SA_KEY secret"
             exit 1
