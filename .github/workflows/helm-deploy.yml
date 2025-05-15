@@ -122,6 +122,8 @@ jobs:
           kubectl annotate --local -f - \
             meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
             meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            app.kubernetes.io/managed-by=Helm \
+            app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
             --overwrite -o yaml | \
           kubectl apply -f -
 
@@ -135,6 +137,8 @@ jobs:
           kubectl annotate --local -f - \
             meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
             meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            app.kubernetes.io/managed-by=Helm \
+            app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
             --overwrite -o yaml | \
           kubectl apply -f -
 
@@ -146,6 +150,8 @@ jobs:
           kubectl annotate --local -f - \
             meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
             meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            app.kubernetes.io/managed-by=Helm \
+            app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
             --overwrite -o yaml | \
           kubectl apply -f -
 
