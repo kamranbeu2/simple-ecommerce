@@ -12,6 +12,6 @@ spec:
     ports:
         - name: http
           port: {{ .Values.frontend.service.port }}
-          targetPort: {{ .Values.frontend.containerPort }}
+          targetPort: {{ .Values.frontend.ports.containerPort }}
     selector:
         app: {{ include "simple-ecommerce.fullname" . }}-frontend

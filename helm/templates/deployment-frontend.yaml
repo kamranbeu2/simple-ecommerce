@@ -22,7 +22,7 @@ spec:
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy | quote }}
           ports:
-            - containerPort: {{ .Values.frontend.containerPort }}
+            - containerPort: {{ .Values.frontend.ports.containerPort }}
           resources:
             requests:
               memory: {{ .Values.frontend.resources.requests.memory | quote }}

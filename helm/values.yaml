@@ -77,6 +77,8 @@ frontend:
     limits:
       memory: "512Mi"
       cpu: "1"
+  ports:
+    containerPort: 80
   service:
     enabled: true
     name: front-end
