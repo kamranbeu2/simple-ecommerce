@@ -107,6 +107,10 @@ jobs:
 
       - name: Create DB secrets and config maps
         run: |
+          # Delete existing secrets if they exist
+          kubectl delete secret db-secret --namespace=${{ env.RELEASE_NAME }} --ignore-not-found
+          kubectl delete secret app-config --namespace=${{ env.RELEASE_NAME }} --ignore-not-found
+          
           kubectl create secret generic db-secret \
             --namespace=${{ env.RELEASE_NAME }} \
             --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
@@ -120,6 +124,8 @@ jobs:
             --from-literal=SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ecommerce \
             --from-literal=SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
             --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl label secret db-secret app.kubernetes.io/managed-by=Helm --namespace=${{ env.RELEASE_NAME }} --overwrite
             
           kubectl create configmap db-init-sql-configmap \
             --namespace=${{ env.RELEASE_NAME }} \
