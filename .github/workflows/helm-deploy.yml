@@ -125,6 +125,10 @@ jobs:
             app.kubernetes.io/managed-by=Helm \
             app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
             --overwrite -o yaml | \
+          kubectl label --local -f - \
+            app.kubernetes.io/managed-by=Helm \
+            app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
+            --overwrite -o yaml | \
           kubectl apply -f -
 
           # app-config secret
@@ -140,6 +144,10 @@ jobs:
             app.kubernetes.io/managed-by=Helm \
             app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
             --overwrite -o yaml | \
+          kubectl label --local -f - \
+            app.kubernetes.io/managed-by=Helm \
+            app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
+            --overwrite -o yaml | \
           kubectl apply -f -
 
           # db-init-sql configmap
@@ -150,6 +158,10 @@ jobs:
           kubectl annotate --local -f - \
             meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
             meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            app.kubernetes.io/managed-by=Helm \
+            app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
+            --overwrite -o yaml | \
+          kubectl label --local -f - \
             app.kubernetes.io/managed-by=Helm \
             app.kubernetes.io/instance=${{ env.RELEASE_NAME }} \
             --overwrite -o yaml | \
