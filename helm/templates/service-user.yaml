@@ -11,7 +11,7 @@ spec:
     type: ClusterIP
     ports:
         - name: http
-          port: {{ .Values.user.service.port | quote }}
-          targetPort: {{ .Values.user.containerPort | quote }}
+          port: {{ .Values.user.service.port  }}
+          targetPort: {{ .Values.user.containerPort }}
     selector:
         app: {{ include "simple-ecommerce.fullname" . }}-user

@@ -11,7 +11,7 @@ spec:
     type: LoadBalancer
     ports:
         - name: http
-          port: {{ .Values.frontend.service.port | quote }}
-          targetPort: {{ .Values.frontend.containerPort | quote }}
+          port: {{ .Values.frontend.service.port }}
+          targetPort: {{ .Values.frontend.containerPort }}
     selector:
         app: {{ include "simple-ecommerce.fullname" . }}-frontend
