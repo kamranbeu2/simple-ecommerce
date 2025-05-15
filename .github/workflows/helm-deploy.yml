@@ -107,43 +107,47 @@ jobs:
 
       - name: Create DB secrets and config maps
         run: |
-          # Delete existing secrets if they exist
+          # Delete any old objects
           kubectl delete secret db-secret --namespace=${{ env.RELEASE_NAME }} --ignore-not-found
           kubectl delete secret app-config --namespace=${{ env.RELEASE_NAME }} --ignore-not-found
-          
-          
+          kubectl delete configmap db-init-sql-configmap --namespace=${{ env.RELEASE_NAME }} --ignore-not-found
+
+          # db-secret with Helm ownership annotations
           kubectl create secret generic db-secret \
             --namespace=${{ env.RELEASE_NAME }} \
             --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
             --from-literal=POSTGRES_USER=${{ secrets.DB_USER }} \
             --from-literal=POSTGRES_DB=ecommerce \
             --dry-run=client -o yaml | \
-            kubectl label --local -f - app.kubernetes.io/managed-by=Helm \
-              meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
-              meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} -o yaml | \
-            kubectl apply -f -
-            
-          
+          kubectl annotate --local -f - \
+            meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
+            meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            --overwrite -o yaml | \
+          kubectl apply -f -
+
+          # app-config secret
           kubectl create secret generic app-config \
             --namespace=${{ env.RELEASE_NAME }} \
             --from-literal=SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
             --from-literal=SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ecommerce \
             --from-literal=SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
             --dry-run=client -o yaml | \
-            kubectl label --local -f - app.kubernetes.io/managed-by=Helm \
-              meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
-              meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} -o yaml | \
-            kubectl apply -f -
-            
-          
+          kubectl annotate --local -f - \
+            meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
+            meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            --overwrite -o yaml | \
+          kubectl apply -f -
+
+          # db-init-sql configmap
           kubectl create configmap db-init-sql-configmap \
             --namespace=${{ env.RELEASE_NAME }} \
             --from-file=init.sql=./db/init.sql \
             --dry-run=client -o yaml | \
-            kubectl label --local -f - app.kubernetes.io/managed-by=Helm \
-              meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
-              meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} -o yaml | \
-            kubectl apply -f -
+          kubectl annotate --local -f - \
+            meta.helm.sh/release-name=${{ env.RELEASE_NAME }} \
+            meta.helm.sh/release-namespace=${{ env.RELEASE_NAME }} \
+            --overwrite -o yaml | \
+          kubectl apply -f -
 
       - name: Generate values file with image tags
         run: |
