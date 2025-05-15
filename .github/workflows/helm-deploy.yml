@@ -155,6 +155,24 @@ jobs:
             --overwrite -o yaml | \
           kubectl apply -f -
 
+
+      # Debugging: List secrets and configmaps in the namespace
+      - name: Validate db-secret annotations
+        run: |
+          kubectl get secret db-secret --namespace=${{ env.RELEASE_NAME }} -o json | jq '.metadata.annotations'
+
+      - name: Patch db-secret annotations if missing
+        run: |
+          kubectl patch secret db-secret \
+            --namespace=${{ env.RELEASE_NAME }} \
+            --type=json \
+            -p='[
+              {"op": "add", "path": "/metadata/annotations/meta.helm.sh~1release-name", "value": "${{ env.RELEASE_NAME }}"},
+              {"op": "add", "path": "/metadata/annotations/meta.helm.sh~1release-namespace", "value": "${{ env.RELEASE_NAME }}"},
+              {"op": "add", "path": "/metadata/annotations/app.kubernetes.io~1managed-by", "value": "Helm"},
+              {"op": "add", "path": "/metadata/annotations/app.kubernetes.io~1instance", "value": "${{ env.RELEASE_NAME }}"}
+            ]'
+
       - name: Generate values file with image tags
         run: |
           cat > ./helm/values-${{ env.ENVIRONMENT }}.yaml << EOF
