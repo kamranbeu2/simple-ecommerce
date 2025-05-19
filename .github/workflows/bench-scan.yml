@@ -11,15 +11,15 @@ on:
 jobs:
   kubernetes-security:
     name: Kubernetes Security Scan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up kubeconfig
-        uses: azure/k8s-set-context@v3
-        with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
       - name: Run kube-bench
         run: |
